@@ -30,6 +30,18 @@ class StockLedgerReportHelper(models.AbstractModel):
         # Optionally suppress location column later during rendering
         return report_lines
 
+    # @api.model
+    # def get_report_data(self, data):
+    #     location_ids = data.get('location_ids') or []
+    #
+    #     report_lines = []
+    #     for loc_id in location_ids:
+    #         single_data = data.copy()
+    #         single_data['location_ids'] = [loc_id]
+    #         single_data['all_location_ids'] = location_ids
+    #         report_lines.extend(self._get_report_data_single_location(single_data))
+    #     return report_lines
+
     @api.model
     def _get_transit_in_out_by_location(self, start_date, end_date, product_ids, selected_location_ids, all_location_ids):
         domain = [
@@ -233,4 +245,48 @@ class StockLedgerReportHelper(models.AbstractModel):
             })
             report_lines.append(res)
 
+        # sort_key = (lambda r: (r['location_name'], r['date'], r['product_id'])) if report_by \
+        #     else (lambda r: (r['date'], r['product_id']))
+        # report_lines.sort(key=sort_key)
         return report_lines
+
+        # # ========================
+        # # Grouping Logic
+        # # ========================
+        # grouped_map = {}
+        # for line in report_lines:
+        #     print("$$$$$$$$$$$$$$")
+        #     if report_by:
+        #         key = (line['location_name'], line['date'], line['product_id'])
+        #     else:
+        #         key = (line['date'], line['product_id'])
+        #
+        #     if key not in grouped_map:
+        #         grouped_map[key] = line.copy()
+        #     else:
+        #         # Sum up the quantities
+        #         for field in [
+        #             'opening_qty', 'purchase_qty', 'sale_return_qty', 'internal_in_qty',
+        #             'transit_in_qty', 'production_in_qty', 'adjustment_in_qty',
+        #             'sale_qty', 'purchase_return_qty', 'internal_out_qty',
+        #             'transit_out_qty', 'production_out_qty', 'adjustment_out_qty',
+        #         ]:
+        #             grouped_map[key][field] = grouped_map[key].get(field, 0.0) + line.get(field, 0.0)
+        #
+        #         # Recalculate totals
+        #         total_in = sum(grouped_map[key].get(k, 0.0) for k in (
+        #             'purchase_qty', 'sale_return_qty', 'internal_in_qty',
+        #             'transit_in_qty', 'production_in_qty', 'adjustment_in_qty',
+        #         ))
+        #         total_out = sum(grouped_map[key].get(k, 0.0) for k in (
+        #             'sale_qty', 'purchase_return_qty', 'internal_out_qty',
+        #             'transit_out_qty', 'production_out_qty', 'adjustment_out_qty',
+        #         ))
+        #         grouped_map[key]['closing_qty'] = grouped_map[key]['opening_qty'] + total_in - total_out
+        #
+        # # Final sorted list
+        # grouped_lines = list(grouped_map.values())
+        # sort_key = (lambda r: (r['location_name'], r['date'], r['product_id'])) if report_by \
+        #     else (lambda r: (r['date'], r['product_id']))
+        # grouped_lines.sort(key=sort_key)
+        # return grouped_lines

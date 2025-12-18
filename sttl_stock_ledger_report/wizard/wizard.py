@@ -85,6 +85,41 @@ class StockLedgerReportWizard(models.TransientModel):
             sheet.write(row, 16, res['adjustment_out_qty'])
             sheet.write(row, 17, res['closing_qty'])
             row += 1
+        #
+        # # ===== Compute totals =====
+        #
+        # row += 1
+        # total_fields = [
+        #     'opening_qty', 'sale_qty', 'purchase_qty', 'sale_return_qty', 'purchase_return_qty',
+        #     'internal_in_qty', 'internal_out_qty', 'transit_in_qty', 'transit_out_qty',
+        #     'production_in_qty', 'production_out_qty', 'adjustment_in_qty', 'adjustment_out_qty',
+        #     'closing_qty'
+        # ]
+        # totals = {field: 0.0 for field in total_fields}
+        #
+        # for res in results:
+        #     for field in total_fields:
+        #         totals[field] += res.get(field, 0.0)
+        #
+        # # ===== Write totals row =====
+        # sheet.write(row, 0, "TOTAL", bold)
+        # sheet.write(row, 1, '')  # Product name
+        # sheet.write(row, 2, '')  # Category
+        # sheet.write(row, 3, '')  # Location
+        # sheet.write(row, 4, totals['opening_qty'], bold)
+        # sheet.write(row, 5, totals['sale_qty'], bold)
+        # sheet.write(row, 6, totals['purchase_qty'], bold)
+        # sheet.write(row, 7, totals['sale_return_qty'], bold)
+        # sheet.write(row, 8, totals['purchase_return_qty'], bold)
+        # sheet.write(row, 9, totals['internal_in_qty'], bold)
+        # sheet.write(row, 10, totals['internal_out_qty'], bold)
+        # sheet.write(row, 11, totals['transit_in_qty'], bold)
+        # sheet.write(row, 12, totals['transit_out_qty'], bold)
+        # sheet.write(row, 13, totals['production_in_qty'], bold)
+        # sheet.write(row, 14, totals['production_out_qty'], bold)
+        # sheet.write(row, 15, totals['adjustment_in_qty'], bold)
+        # sheet.write(row, 16, totals['adjustment_out_qty'], bold)
+        # sheet.write(row, 17, totals['closing_qty'], bold)
 
         workbook.close()
         return fp.getvalue()
