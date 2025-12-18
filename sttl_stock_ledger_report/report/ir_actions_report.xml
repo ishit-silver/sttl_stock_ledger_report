@@ -1,0 +1,9 @@
+<odoo>
+    <record id="stock_ledger_report_xlsx" model="ir.actions.report">
+        <field name="name">Stock Ledger Report xlsx</field>
+        <field name="model">stock.move</field>
+        <field name="report_type">xlsx</field>
+        <field name="report_name">sttl_stock_ledger_report.stock_ledger_report_xlsx</field>
+        <field name="report_file">sttl_stock_ledger_report.stock_ledger_report_xlsx</field>
+    </record>
+</odoo>

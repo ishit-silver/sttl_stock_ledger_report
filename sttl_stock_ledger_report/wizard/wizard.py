@@ -3,8 +3,6 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 from odoo.exceptions import ValidationError
 from odoo import models, fields, api
-from io import BytesIO
-import xlsxwriter
 
 _logger = logging.getLogger(__name__)
 
@@ -17,112 +15,10 @@ class StockLedgerReportWizard(models.TransientModel):
     date = fields.Date(string='Date')
     start_date = fields.Date(string='Start Date', required=True)
     end_date = fields.Date(string='End Date', required=True)
-    location_ids = fields.Many2many('stock.location', string='Location', required=True, domain="[('usage', 'in', ['internal', 'transit'])]")
 
+    location_ids = fields.Many2many('stock.location', string='Location', required=True, domain="[('usage', 'in', ['internal', 'transit'])]")
     product_ids = fields.Many2many('product.product', string='Product')
     categ_ids = fields.Many2many('product.category', string='Product Category')
-
-    def print_report(self):
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/web/stock_ledger_report/%s' % (self.id),
-            'target': 'new',
-        }
-
-    def generate_stock_ledger_xlsx_report(self):
-        fp = BytesIO()
-        workbook = xlsxwriter.Workbook(fp)
-        sheet = workbook.add_worksheet("Stock Ledger Report")
-        bold = workbook.add_format({'bold': True})
-
-        headers = [
-            'Date', 'Product', 'Category','Location',
-            'Opening Stock', 'Sale', 'Purchase', 'Sales Return', 'Purchase Return',
-            'Internal In', 'Internal Out', 'Transit In', 'Transit Out',
-            'Production In', 'Production Out', 'Adjustment In', 'Adjustment Out',
-            'Closing Stock'
-        ]
-        for col, header in enumerate(headers):
-            sheet.write(0, col, header, bold)
-            width = max(len(header), 10)  # minimum width of 15
-            sheet.set_column(col, col, width)
-
-        data = {
-            'start_date': self.start_date.strftime('%Y-%m-%d %H:%M:%S') if self.start_date else False,
-            'end_date': self.end_date.strftime('%Y-%m-%d %H:%M:%S') if self.end_date else False,
-            'location_ids': [l.id for l in self.location_ids],
-            'product_ids': [p.id for p in self.product_ids],
-            'categ_ids': [c.id for c in self.categ_ids],
-            'report_by': self.report_by,
-        }
-        results = self.env['stock.ledger.report.helper'].get_report_data(data)
-
-        if not isinstance(results, list):
-            results = []
-
-        if not results:
-            sheet.write(1, 0, "No data found matching the selected criteria.")
-            return
-
-        row = 1
-        for res in results:
-            sheet.write(row, 0, str(res['date']))
-            sheet.write(row, 1, res['product_name'])
-            sheet.write(row, 2, res['category_name'])
-            sheet.write(row, 3, res['location_name'])
-            sheet.write(row, 4, res['opening_qty'])
-            sheet.write(row, 5, res['sale_qty'])
-            sheet.write(row, 6, res['purchase_qty'])
-            sheet.write(row, 7, res['sale_return_qty'])
-            sheet.write(row, 8, res['purchase_return_qty'])
-            sheet.write(row, 9, res['internal_in_qty'])
-            sheet.write(row, 10, res['internal_out_qty'])
-            sheet.write(row, 11, res['transit_in_qty'])
-            sheet.write(row, 12, res['transit_out_qty'])
-            sheet.write(row, 13, res['production_in_qty'])
-            sheet.write(row, 14, res['production_out_qty'])
-            sheet.write(row, 15, res['adjustment_in_qty'])
-            sheet.write(row, 16, res['adjustment_out_qty'])
-            sheet.write(row, 17, res['closing_qty'])
-            row += 1
-        #
-        # # ===== Compute totals =====
-        #
-        # row += 1
-        # total_fields = [
-        #     'opening_qty', 'sale_qty', 'purchase_qty', 'sale_return_qty', 'purchase_return_qty',
-        #     'internal_in_qty', 'internal_out_qty', 'transit_in_qty', 'transit_out_qty',
-        #     'production_in_qty', 'production_out_qty', 'adjustment_in_qty', 'adjustment_out_qty',
-        #     'closing_qty'
-        # ]
-        # totals = {field: 0.0 for field in total_fields}
-        #
-        # for res in results:
-        #     for field in total_fields:
-        #         totals[field] += res.get(field, 0.0)
-        #
-        # # ===== Write totals row =====
-        # sheet.write(row, 0, "TOTAL", bold)
-        # sheet.write(row, 1, '')  # Product name
-        # sheet.write(row, 2, '')  # Category
-        # sheet.write(row, 3, '')  # Location
-        # sheet.write(row, 4, totals['opening_qty'], bold)
-        # sheet.write(row, 5, totals['sale_qty'], bold)
-        # sheet.write(row, 6, totals['purchase_qty'], bold)
-        # sheet.write(row, 7, totals['sale_return_qty'], bold)
-        # sheet.write(row, 8, totals['purchase_return_qty'], bold)
-        # sheet.write(row, 9, totals['internal_in_qty'], bold)
-        # sheet.write(row, 10, totals['internal_out_qty'], bold)
-        # sheet.write(row, 11, totals['transit_in_qty'], bold)
-        # sheet.write(row, 12, totals['transit_out_qty'], bold)
-        # sheet.write(row, 13, totals['production_in_qty'], bold)
-        # sheet.write(row, 14, totals['production_out_qty'], bold)
-        # sheet.write(row, 15, totals['adjustment_in_qty'], bold)
-        # sheet.write(row, 16, totals['adjustment_out_qty'], bold)
-        # sheet.write(row, 17, totals['closing_qty'], bold)
-
-        workbook.close()
-        return fp.getvalue()
 
     def action_generate_pdf_report(self):
         self.ensure_one()  # Ensure it's a single record
@@ -139,3 +35,18 @@ class StockLedgerReportWizard(models.TransientModel):
 
         # Call the new PDF report
         return self.env.ref('sttl_stock_ledger_report.stock_ledger_report_pdf').report_action(self, data=report_data)
+
+    def action_generate_xlsx_report(self):
+        self.ensure_one()  # Ensure it's a single record
+
+        report_data = {
+            'start_date': self.start_date.strftime('%Y-%m-%d %H:%M:%S') if self.start_date else False,
+            'end_date': self.end_date.strftime('%Y-%m-%d %H:%M:%S') if self.end_date else False,
+            'location_ids': [l.id for l in self.location_ids],
+            'product_ids': [p.id for p in self.product_ids],
+            'categ_ids': [c.id for c in self.categ_ids],
+            'report_by': self.report_by,
+        }
+
+        return self.env.ref('sttl_stock_ledger_report.stock_ledger_report_xlsx').report_action(self, data=report_data)
+

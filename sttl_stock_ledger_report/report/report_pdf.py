@@ -1,4 +1,7 @@
 from odoo import models, fields, api
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class StockLedgerReportPDF(models.AbstractModel):
@@ -13,10 +16,14 @@ class StockLedgerReportPDF(models.AbstractModel):
         if not isinstance(report_data, list):
             report_data = []
 
+
+        # Make sure we're using the correct model name
+        model = 'stock.ledger.report.wizard'
+
         return {
             'doc_ids': docids,
-            'doc_model': 'stock.ledger.report.wizard',
+            'doc_model': model,
             'data': data,
-            'docs': self.env['stock.ledger.report.wizard'].browse(docids),
+            'docs': self.env[model].browse(docids),
             'report_data': report_data,
         }

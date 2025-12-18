@@ -4,41 +4,43 @@
         <field name="model">stock.ledger.report.wizard</field>
         <field name="arch" type="xml">
             <form string="Inventory Ledger Report">
-                <group col="2">
-                    <!-- Left Column -->
-                    <group>
-                        <div style="font-size: 1.5rem; font-weight: bold;">
-                            Group by
-                        </div>
-                        <field name="report_by" widget="boolean_toggle" help="Enable to group report by location."/>
-                        <div style="font-size: 1.5rem; margin-top: 10px; font-weight: bold;">
-                            Products and Categories
-                        </div>
-                        <field name="product_ids"  widget="many2many_tags" style="max-height: 60px; overflow-y: auto;"/>
-                        <field name="categ_ids"  widget="many2many_tags" style="max-height: 60px; overflow-y: auto;"/>
-                    </group>
+                <sheet>
+                    <div class="o_row">
+                        <div class="o_col-6">
+                            <h3 class="o_section_title">Group by </h3>
+                            <group>
+                                <field name="report_by" widget="boolean_toggle" help="Enable to group report by location."/>
+                            </group>
 
-                    <!-- Right Column -->
-                    <group>
-                        <div style="font-size: 1.5rem; font-weight: bold; white-space: nowrap;">
-                            Choose dates to calculate ledger
-                        </div>
-                        <field name="start_date"/>
-                        <field name="end_date"/>
 
-                        <div style="font-size: 1.5rem; margin-top: 10px; font-weight: bold; white-space: nowrap;">
-                            Filter by
+                            <h3 class="o_section_title" style="margin-top: 10px;">Products and Categories</h3>
+                            <group>
+                                <field name="product_ids" widget="many2many_tags"/>
+                                <field name="categ_ids" widget="many2many_tags"/>
+                            </group>
                         </div>
-                        <field name="location_ids"  widget="many2many_tags" style="max-height: 60px; overflow-y: auto;"/>
-                    </group>
-                </group>
 
+                        <div class="o_col-6">
+                            <h3 class="o_section_title">Choose dates to calculate ledger</h3>
+                            <group>
+                                <field name="start_date" string="Start Date" required="1"/>
+                                <field name="end_date" string="End Date" required="1"/>
+                            </group>
+
+                            <h3 class="o_section_title" style="margin-top: 10px;">Filter by</h3>
+                            <group>
+                                <field name="location_ids" widget="many2many_tags"/>
+                            </group>
+                        </div>
+                    </div>
+                </sheet>
                 <footer>
-                    <button name="print_report" type="object" class="btn-primary" string="Print Xlsx report"/>
-                    <button name="action_generate_pdf_report" type="object" class="btn-primary" string="Print Pdf report"/>
+                    <button name="action_generate_xlsx_report" type="object" class="btn-primary" string="Print Excel"/>
+                    <button name="action_generate_pdf_report" type="object" class="btn-primary" string="Print PDF"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
+
         </field>
     </record>
 </odoo>
