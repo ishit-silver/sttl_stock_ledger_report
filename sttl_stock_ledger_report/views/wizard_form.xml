@@ -1,0 +1,44 @@
+<odoo>
+    <record id="view_stock_ledger_report_wizard" model="ir.ui.view">
+        <field name="name">stock.ledger.report.wizard.form</field>
+        <field name="model">stock.ledger.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Ledger Report">
+                <group col="2">
+                    <!-- Left Column -->
+                    <group>
+                        <div style="font-size: 1.5rem; font-weight: bold;">
+                            Group by
+                        </div>
+                        <field name="report_by" widget="boolean_toggle" help="Enable to group report by location."/>
+                        <div style="font-size: 1.5rem; margin-top: 10px; font-weight: bold;">
+                            Products and Categories
+                        </div>
+                        <field name="product_ids"  widget="many2many_tags" style="max-height: 60px; overflow-y: auto;"/>
+                        <field name="categ_ids"  widget="many2many_tags" style="max-height: 60px; overflow-y: auto;"/>
+                    </group>
+
+                    <!-- Right Column -->
+                    <group>
+                        <div style="font-size: 1.5rem; font-weight: bold; white-space: nowrap;">
+                            Choose dates to calculate ledger
+                        </div>
+                        <field name="start_date"/>
+                        <field name="end_date"/>
+
+                        <div style="font-size: 1.5rem; margin-top: 10px; font-weight: bold; white-space: nowrap;">
+                            Filter by
+                        </div>
+                        <field name="location_ids"  widget="many2many_tags" style="max-height: 60px; overflow-y: auto;"/>
+                    </group>
+                </group>
+
+                <footer>
+                    <button name="print_report" type="object" class="btn-primary" string="Print Xlsx report"/>
+                    <button name="action_generate_pdf_report" type="object" class="btn-primary" string="Print Pdf report"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

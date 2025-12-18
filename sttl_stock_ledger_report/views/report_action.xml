@@ -1,0 +1,11 @@
+<odoo>
+    <record id="stock_ledger_report_pdf" model="ir.actions.report">
+        <field name="name">Stock Ledger Report</field>
+        <field name="model">stock.ledger.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sttl_stock_ledger_report.stock_ledger_report_template</field>
+        <field name="report_file">sttl_stock_ledger_report.stock_ledger_report_template</field>
+        <field name="binding_model_id" ref="model_stock_ledger_report_wizard"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

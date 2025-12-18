@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- PDF Report Template -->
+    <template id="stock_ledger_report_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <style>
+                .table th, .table td {
+                    font-size: 10px;
+                    padding: 2px;
+                }
+                .table th {
+                    width: 5%;
+                }
+                .report-header {
+                    width: 100%;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .report-title {
+                    font-size: 24px;
+                    font-weight: bold;
+                }
+                .date-range {
+                    font-size: 18px;
+                    color: #666;
+                    text-align: right;
+                }
+                </style>
+
+                <div class="page">
+                    <table class="report-header">
+                        <tr>
+                        <td class="report-title" style="width: 50%;">
+                            Stock Ledger Report
+                            <t t-if="data and data.get('report_by')">
+                                by <span>Location</span>
+                            </t>
+                        </td>
+                        <td class="date-range" style="width: 50%; text-align: right;">
+                            <t t-if="data and data.get('start_date') and data.get('end_date')">
+                                <strong>Period:</strong>
+                                <span t-esc="data.get('start_date')" t-options='{"widget": "datetime", "format": "dd/MM/yyyy"}'/>
+                                 to
+                                <span t-esc="data.get('end_date')" t-options='{"widget": "datetime", "format": "dd/MM/yyyy"}'/>
+                            </t>
+                        </td>
+                        </tr>
+                    </table>
+
+
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Location</th>
+                                <th>Opening Stock</th>
+                                <th>Sales</th>
+                                <th>Purchase</th>
+                                <th>Sales Return</th>
+                                <th>Purchase Return</th>
+                                <th>Internal In</th>
+                                <th>Internal Out</th>
+                                <th>Transit In</th>
+                                <th>Transit Out</th>
+                                <th>Production In</th>
+                                <th>Production Out</th>
+                                <th>Adjustment In</th>
+                                <th>Adjustment Out</th>
+                                <th>Closing Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="not report_data">
+                                <tr>
+                                    <td colspan="19" class="text-center">No data found matching the selected criteria.</td>
+                                </tr>
+                            </t>
+                            <t t-foreach="report_data" t-as="line">
+                                <tr>
+                                    <td><span t-esc="line['date']" t-options='{"widget": "date"}'/></td>
+                                    <td><span t-esc="line['product_name']"/></td>
+                                    <td><span t-esc="line['category_name']"/></td>
+                                    <td><span t-esc="line['location_name']"/></td>
+                                    <td><span t-esc="line['opening_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['sale_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['purchase_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['sale_return_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['purchase_return_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['internal_in_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['internal_out_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['transit_in_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['transit_out_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['production_in_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['production_out_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['adjustment_in_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['adjustment_out_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><span t-esc="line['closing_qty']" t-options='{"widget": "float", "precision": 2}'/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

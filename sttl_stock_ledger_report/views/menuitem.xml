@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Action -->
+    <record id="action_stock_ledger_report" model="ir.actions.act_window">
+        <field name="name">Stock Ledger Report</field>
+        <field name="res_model">stock.ledger.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_stock_ledger_report"
+              name="Stock Ledger Report"
+              parent="stock.menu_warehouse_report"
+              action="action_stock_ledger_report"
+              sequence="141"/>
+
+</odoo>
