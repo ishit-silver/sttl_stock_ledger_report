@@ -61,21 +61,19 @@ class StockLedgerReportHelper(models.AbstractModel):
             dest = move.location_dest_id
             pid = move.product_id.id
             date = move.date.date()
+            qty = move.product_uom_qty or 0.0
 
-            for line in move.move_line_ids:
-                qty = line.qty_done or 0.0
+            if src.usage == 'internal' and dest.usage == 'transit':
+                if dest.id in selected_location_ids:
+                    result[(date, pid, dest.id)]['transit_out'] += qty
+                elif src.id in all_location_ids:
+                    result[(date, pid, src.id)]['transit_out'] += qty
 
-                if src.usage == 'internal' and dest.usage == 'transit':
-                    if dest.id in selected_location_ids:
-                        result[(date, pid, dest.id)]['transit_out'] += qty
-                    elif src.id in all_location_ids:
-                        result[(date, pid, src.id)]['transit_out'] += qty
-
-                elif src.usage == 'transit' and dest.usage == 'internal':
-                    if src.id in selected_location_ids:
-                        result[(date, pid, src.id)]['transit_in'] += qty
-                    elif dest.id in all_location_ids:
-                        result[(date, pid, dest.id)]['transit_in'] += qty
+            elif src.usage == 'transit' and dest.usage == 'internal':
+                if src.id in selected_location_ids:
+                    result[(date, pid, src.id)]['transit_in'] += qty
+                elif dest.id in all_location_ids:
+                    result[(date, pid, dest.id)]['transit_in'] += qty
 
         return [
             {
@@ -139,7 +137,7 @@ class StockLedgerReportHelper(models.AbstractModel):
         opening_map = defaultdict(float)
         self.env.cr.execute("""
             SELECT sm.product_id, sm.location_id, sm.location_dest_id,
-                   sml.qty_done, sl_src.usage AS src_usage, sl_dest.usage AS dest_usage
+                   sm.product_uom_qty, sl_src.usage AS src_usage, sl_dest.usage AS dest_usage
             FROM stock_move sm
             LEFT JOIN stock_move_line sml ON sm.id = sml.move_id
             LEFT JOIN stock_location sl_src ON sm.location_id = sl_src.id
@@ -148,7 +146,7 @@ class StockLedgerReportHelper(models.AbstractModel):
         """, (start_date, filtered_product_ids))
 
         for row in self.env.cr.dictfetchall():
-            pid, qty = row['product_id'], row['qty_done'] or 0.0
+            pid, qty = row['product_id'], row['product_uom_qty'] or 0.0
             src_id, dest_id = row['location_id'], row['location_dest_id']
             if src_id in location_ids:
                 if row['src_usage'] in ['internal', 'transit']:
@@ -162,7 +160,7 @@ class StockLedgerReportHelper(models.AbstractModel):
             WITH normalized_move AS (
                 SELECT sm.date::date AS date, sm.product_id, ptmpl.categ_id,
                        CASE WHEN sm.location_id = ANY(%s) THEN sm.location_id ELSE sm.location_dest_id END AS location_id,
-                       sml.qty_done, pt.code AS picking_code,
+                       sm.product_uom_qty, pt.code AS picking_code,
                        sl_src.usage AS src_usage, sl_dest.usage AS dest_usage,
                        sm.production_id, sm.raw_material_production_id,
                        sm.location_dest_id = ANY(%s) AS is_internal_in,
@@ -178,16 +176,16 @@ class StockLedgerReportHelper(models.AbstractModel):
                 WHERE sm.state = 'done' AND {base_condition}
             )
             SELECT date, product_id, categ_id, location_id,
-                   SUM(CASE WHEN picking_code = 'outgoing' AND src_usage = 'internal' AND dest_usage = 'customer' THEN qty_done ELSE 0 END) AS sale_qty,
-                   SUM(CASE WHEN picking_code = 'incoming' AND src_usage = 'supplier' AND dest_usage = 'internal' THEN qty_done ELSE 0 END) AS purchase_qty,
-                   SUM(CASE WHEN picking_code = 'incoming' AND src_usage = 'customer' AND dest_usage = 'internal' THEN qty_done ELSE 0 END) AS sale_return_qty,
-                   SUM(CASE WHEN picking_code = 'outgoing' AND src_usage = 'internal' AND dest_usage = 'supplier' THEN qty_done ELSE 0 END) AS purchase_return_qty,
-                   SUM(CASE WHEN src_usage = 'internal' AND dest_usage = 'internal' AND is_internal_in THEN qty_done ELSE 0 END) AS internal_in_qty,
-                   SUM(CASE WHEN src_usage = 'internal' AND dest_usage = 'internal' AND is_internal_out THEN qty_done ELSE 0 END) AS internal_out_qty,
-                   SUM(CASE WHEN production_id IS NOT NULL AND raw_material_production_id IS NULL THEN qty_done ELSE 0 END) AS production_in_qty,
-                   SUM(CASE WHEN production_id IS NULL AND raw_material_production_id IS NOT NULL THEN qty_done ELSE 0 END) AS production_out_qty,
-                   SUM(CASE WHEN src_usage IN ('inventory', 'inventory_loss') AND dest_usage = 'internal' THEN qty_done ELSE 0 END) AS adjustment_in_qty,
-                   SUM(CASE WHEN src_usage = 'internal' AND dest_usage IN ('inventory', 'inventory_loss') THEN qty_done ELSE 0 END) AS adjustment_out_qty
+                   SUM(CASE WHEN picking_code = 'outgoing' AND src_usage = 'internal' AND dest_usage = 'customer' THEN product_uom_qty ELSE 0 END) AS sale_qty,
+                   SUM(CASE WHEN picking_code = 'incoming' AND src_usage = 'supplier' AND dest_usage = 'internal' THEN product_uom_qty ELSE 0 END) AS purchase_qty,
+                   SUM(CASE WHEN picking_code = 'incoming' AND src_usage = 'customer' AND dest_usage = 'internal' THEN product_uom_qty ELSE 0 END) AS sale_return_qty,
+                   SUM(CASE WHEN picking_code = 'outgoing' AND src_usage = 'internal' AND dest_usage = 'supplier' THEN product_uom_qty ELSE 0 END) AS purchase_return_qty,
+                   SUM(CASE WHEN src_usage = 'internal' AND dest_usage = 'internal' AND is_internal_in THEN product_uom_qty ELSE 0 END) AS internal_in_qty,
+                   SUM(CASE WHEN src_usage = 'internal' AND dest_usage = 'internal' AND is_internal_out THEN product_uom_qty ELSE 0 END) AS internal_out_qty,
+                   SUM(CASE WHEN production_id IS NOT NULL AND raw_material_production_id IS NULL THEN product_uom_qty ELSE 0 END) AS production_in_qty,
+                   SUM(CASE WHEN production_id IS NULL AND raw_material_production_id IS NOT NULL THEN product_uom_qty ELSE 0 END) AS production_out_qty,
+                   SUM(CASE WHEN src_usage IN ('inventory', 'inventory_loss') AND dest_usage = 'internal' THEN product_uom_qty ELSE 0 END) AS adjustment_in_qty,
+                   SUM(CASE WHEN src_usage = 'internal' AND dest_usage IN ('inventory', 'inventory_loss') THEN product_uom_qty ELSE 0 END) AS adjustment_out_qty
             FROM normalized_move
             GROUP BY date, product_id, categ_id, location_id
             ORDER BY date
