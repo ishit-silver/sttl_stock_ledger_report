@@ -2,7 +2,7 @@
     'name': 'STTL Stock Ledger Report',
     'summary': 'Generate Stock Ledger Report',
     'description': 'Generate Stock Ledger Report',
-    'author': 'Tanvi',
+    'author': 'Silver Touch Technologies Limited',
     'depends': ['base', 'stock', 'report_xlsx', 'mrp'],
 
     'data': [
@@ -13,6 +13,8 @@
         'views/report_action.xml',
         'report/ir_actions_report.xml',
     ],
+
+    'images': ['static/description/banner.png'],
 
     'installable': True,
     'application': True,
